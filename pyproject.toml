@@ -23,14 +23,14 @@ check_untyped_defs = true
 exclude = '^data\/*'
 
 [[tool.mypy.overrides]]
-module = []
+module = ["transformers", "mlflow", "bertopic"]
 ignore_missing_imports = true
 
 [tool.ruff]
-exclude = [".git", "__pycache__", ".venv", "venv"]
+exclude = [".git", "__pycache__", ".venv", "venv", "src/data_processing/stop_words.py"]
 line-length = 88
 indent-width = 4
-src = ["src/", ]
+src = ["src/"]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "E501", "I001"]

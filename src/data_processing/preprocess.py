@@ -42,8 +42,6 @@ def prepare_dataset(dataset_path: str, processing: Processing):
     dataset = TsvDataset(dataset_path, True)
     dataset.drop_nulls()
 
-    dataset.data = dataset.data.slice(0, 1000)  # :Todo DELETE THIS LINE
-
     match processing:
         case processing.RAW:
             pass

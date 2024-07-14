@@ -2,6 +2,7 @@ from pathlib import Path
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from data_processing.preprocess_types import Processing
 
 ENV_FILE = Path(__file__).parents[1] / ".env"

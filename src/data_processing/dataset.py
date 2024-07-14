@@ -1,23 +1,25 @@
 from __future__ import annotations
 
+import typing
 from pathlib import Path
 from random import randint
 
 import polars as pl
 
-from data_processing.settings import STOP_WORDS
+from data_processing.stop_words import STOP_WORDS
 
 
 class TsvDataset:
     def __init__(self, dataset_path: str, load: bool = True):
-        self.data: pl.DataFrame | None = None
+        self.data: pl.DataFrame = pl.DataFrame()
         if load:
             self.load(dataset_path)
             self.add_index()
 
+    @typing.no_type_check
     def check_loaded_data(func):
         def wrapper(self, *args, **kwargs):
-            if self.data is None:
+            if not len(self.data):
                 raise ValueError("LOAD DATA FIRST.")
             return func(self, *args, **kwargs)
 
@@ -42,6 +44,7 @@ class TsvDataset:
     def drop_nulls(self):
         self.data = self.data.drop_nulls()
 
+    @typing.no_type_check
     @check_loaded_data
     def get_row(self, row: int, named: bool = False):
         return self.data.row(index=row, named=named)

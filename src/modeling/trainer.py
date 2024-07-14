@@ -37,8 +37,8 @@ class Trainer:
 
     @staticmethod
     def log_visualizations(model: BERTopic, config: BertTrainerConfig, run_id: str):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            tmp_dir = Path(tmp_dir)
+        with tempfile.TemporaryDirectory() as _tmp_dir:
+            tmp_dir = Path(_tmp_dir)
             fig = model.visualize_topics(
                 width=SETTINGS.figures.width, height=SETTINGS.figures.height
             )
@@ -65,8 +65,8 @@ class Trainer:
 
     @staticmethod
     def log_info(model: BERTopic, config: BertTrainerConfig, run_id: str):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            tmp_dir = Path(tmp_dir)
+        with tempfile.TemporaryDirectory() as _tmp_dir:
+            tmp_dir = Path(_tmp_dir)
             with (tmp_dir / "topic_info.csv").open("w") as f:
                 f.write(model.get_topic_info().to_csv())
             with (tmp_dir / "document_info.csv").open("w") as f:
