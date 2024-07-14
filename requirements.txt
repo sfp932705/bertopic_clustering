@@ -1,0 +1,12 @@
+bertopic==0.16.2
+hvplot==0.10.0
+mlflow==2.14.3
+mypy==1.10.1
+polars==1.1.0
+pyarrow==15.0.2
+pydantic-settings==2.3.4
+ruff==0.5.1
+sentence-transformers==3.0.1
+setuptools>=62.6.0
+transformers==4.42.4
+
