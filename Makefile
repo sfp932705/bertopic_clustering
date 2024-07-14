@@ -16,6 +16,10 @@ lint-mypy:
 install:
 	pip install -q -r requirements.txt
 
-train dataset:
-	python train.py --dataset $(dataset)
+train train-dataset:
+	python train.py --dataset $(train-dataset)
+
+
+infer test-dataset model output:
+	python infer.py --dataset $(test-dataset) --model $(model) --output $(output)
 

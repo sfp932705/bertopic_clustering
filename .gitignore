@@ -1,6 +1,9 @@
 # Data
-/data/
-
+data/
+mlruns/
+mlartifacts/
+inferences/
+models/
 # Mac OS-specific storage files
 .DS_Store
 

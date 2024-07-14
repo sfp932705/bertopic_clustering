@@ -9,7 +9,7 @@ import mlflow
 from bertopic import BERTopic
 
 from data_processing.dataset import TsvDataset
-from data_processing.preprocess import CONTENT, Processing, prepare_dataset
+from data_processing.preprocess import Processing, prepare_dataset
 from modeling.eval import get_coherence_score
 from settings import SETTINGS
 
@@ -31,7 +31,7 @@ class Trainer:
 
     def get_dataset(self, processing: Processing):
         dataset: TsvDataset = prepare_dataset(self.dataset_path, processing)
-        contents = dataset.get_col_as_numpy(CONTENT)
+        contents = dataset.get_col_as_numpy(SETTINGS.columns.content)
         return contents
 
     def get_hyperparams_list(self) -> list[dict]:
@@ -113,3 +113,5 @@ class Trainer:
         ).iloc[0]
         artifact_uri = run["artifact_uri"]
         mlflow.artifacts.download_artifacts(artifact_uri, dst_path=output)
+        processing = run["params.processing"]
+        (output / "processing.txt").write_text(processing)
