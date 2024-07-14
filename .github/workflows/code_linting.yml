@@ -1,0 +1,28 @@
+name: Code Linting
+
+on: [ pull_request ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    name: Linting and Testing
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Lint
+        run: make lint
+
