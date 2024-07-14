@@ -1,6 +1,7 @@
 import itertools
 import multiprocessing
 import tempfile
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -9,9 +10,8 @@ from bertopic import BERTopic
 
 from data_processing.dataset import TsvDataset
 from data_processing.preprocess import CONTENT, Processing, prepare_dataset
+from modeling.eval import get_coherence_score
 from settings import SETTINGS
-
-PROCESSINGS = [Processing.RAW]
 
 
 @dataclass
@@ -22,9 +22,12 @@ class BertTrainerConfig:
 
 
 class Trainer:
-    def __init__(self, dataset_path: str):
+    def __init__(self, dataset_path: str, experiment_name: str | None = None):
         self.dataset_path = dataset_path
         self.param_grid = SETTINGS.params.dict()
+        self.experiment_name = experiment_name if experiment_name else str(uuid.uuid4())
+        mlflow.set_tracking_uri(SETTINGS.mlflow.uri)
+        mlflow.set_experiment(self.experiment_name)
 
     def get_dataset(self, processing: Processing):
         dataset: TsvDataset = prepare_dataset(self.dataset_path, processing)
@@ -76,12 +79,14 @@ class Trainer:
             )
 
     def fit(self, config: BertTrainerConfig):
-        mlflow.set_tracking_uri(SETTINGS.mlflow.uri)
-        with mlflow.start_run():
+        experiment = mlflow.get_experiment_by_name(self.experiment_name)
+        with mlflow.start_run(experiment_id=experiment.experiment_id):
             mlflow.log_params(config.params)
             mlflow.log_param("processing", config.processing_type)
             model = BERTopic(**config.params)
-            model.fit_transform(config.documents)
+            topics, probs = model.fit_transform(config.documents)
+            coherence_score = get_coherence_score(model, config.documents, len(topics))
+            mlflow.log_metric("coherence_score", coherence_score)
             run = mlflow.active_run()
             self.log_model(model, run.info.run_id)
             self.log_info(model, config, run.info.run_id)
@@ -98,3 +103,13 @@ class Trainer:
                 )
                 configs.append(config)
         pool.map(self.fit, configs)
+
+    def save_best_model(self):
+        output = Path(SETTINGS.mlflow.best_model)
+        output.mkdir(exist_ok=True, parents=True)
+        experiment = mlflow.get_experiment_by_name(self.experiment_name)
+        run = mlflow.search_runs(
+            experiment.experiment_id, order_by=["metrics.coherence_score.DESC"]
+        ).iloc[0]
+        artifact_uri = run["artifact_uri"]
+        mlflow.artifacts.download_artifacts(artifact_uri, dst_path=output)

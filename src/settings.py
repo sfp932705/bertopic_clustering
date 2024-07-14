@@ -10,6 +10,7 @@ ENV_FILE = Path(__file__).parents[1] / ".env"
 
 class MlFlowSettings(BaseSettings):
     uri: str = "http://127.0.0.1:5000"
+    best_model: str = "models"
 
 
 class BERTopicParamGrid(BaseSettings):

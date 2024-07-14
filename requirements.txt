@@ -6,6 +6,7 @@ polars==1.1.0
 pyarrow==15.0.2
 pydantic-settings==2.3.4
 ruff==0.5.1
+scipy==1.10.1
 sentence-transformers==3.0.1
 setuptools>=62.6.0
 transformers==4.42.4

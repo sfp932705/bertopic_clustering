@@ -9,3 +9,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     trainer = Trainer(dataset_path=args.dataset.absolute().as_posix())
     trainer.train()
+    trainer.save_best_model()
