@@ -23,7 +23,7 @@ check_untyped_defs = true
 exclude = '^data\/*'
 
 [[tool.mypy.overrides]]
-module = ["transformers", "mlflow", "bertopic", "gensim", "sklearn"]
+module = ["transformers", "mlflow", "bertopic", "gensim", "gensim.models.coherencemodel", "sklearn.metrics"]
 ignore_missing_imports = true
 
 [tool.ruff]
