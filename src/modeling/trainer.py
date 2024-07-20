@@ -6,7 +6,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import mlflow
+import numpy as np
 from bertopic import BERTopic
+from lightgbm import LGBMClassifier
+from sklearn.metrics import f1_score, precision_score, recall_score
 
 from data_processing.dataset import TsvDataset
 from data_processing.preprocess import Processing, prepare_dataset
@@ -42,10 +45,13 @@ class Trainer:
     def log_visualizations(model: BERTopic, config: BertTrainerConfig, run_id: str):
         with tempfile.TemporaryDirectory() as _tmp_dir:
             tmp_dir = Path(_tmp_dir)
-            fig = model.visualize_topics(
-                width=SETTINGS.figures.width, height=SETTINGS.figures.height
-            )
-            fig.write_html(tmp_dir / "vis_topics.html")
+            try:
+                fig = model.visualize_topics(
+                    width=SETTINGS.figures.width, height=SETTINGS.figures.height
+                )
+                fig.write_html(tmp_dir / "vis_topics.html")
+            except (ValueError, TypeError):
+                pass
             fig = model.visualize_hierarchy(
                 width=SETTINGS.figures.width, height=SETTINGS.figures.height
             )
@@ -78,19 +84,40 @@ class Trainer:
                 tmp_dir.as_posix(), artifact_path="info", run_id=run_id
             )
 
+    @staticmethod
+    def overfit_small_classifier(features: np.ndarray, target: list[int], run_id: str):
+        model = LGBMClassifier(**SETTINGS.lightgbm.model_dump())
+        model.fit(features, target)
+        predicted = model.predict(features)
+        mlflow.log_metric(
+            "precision",
+            precision_score(target, predicted, average="weighted"),
+            run_id=run_id,
+        )
+        mlflow.log_metric(
+            "recall", recall_score(target, predicted, average="weighted"), run_id=run_id
+        )
+        mlflow.log_metric(
+            "f1_score", f1_score(target, predicted, average="weighted"), run_id=run_id
+        )
+
     def fit(self, config: BertTrainerConfig):
         experiment = mlflow.get_experiment_by_name(self.experiment_name)
         with mlflow.start_run(experiment_id=experiment.experiment_id):
             mlflow.log_params(config.params)
+            mlflow.log_param("dataset", self.dataset_path)
             mlflow.log_param("processing", config.processing_type)
             model = BERTopic(**config.params)
             topics, probs = model.fit_transform(config.documents)
-            coherence_score = get_coherence_score(model, config.documents, len(topics))
-            mlflow.log_metric("coherence_score", coherence_score)
             run = mlflow.active_run()
+            mlflow.log_metric("clusters", len(model.get_topics()))
+            embeddings = model.embedding_model.embed(config.documents)
+            self.overfit_small_classifier(embeddings, topics, run.info.run_id)
             self.log_model(model, run.info.run_id)
             self.log_info(model, config, run.info.run_id)
             self.log_visualizations(model, config, run.info.run_id)
+            coherence_score = get_coherence_score(model, config.documents, len(topics))
+            mlflow.log_metric("coherence_score", coherence_score)
 
     def train(self):
         pool = multiprocessing.Pool(processes=4)
@@ -109,7 +136,7 @@ class Trainer:
         output.mkdir(exist_ok=True, parents=True)
         experiment = mlflow.get_experiment_by_name(self.experiment_name)
         run = mlflow.search_runs(
-            experiment.experiment_id, order_by=["metrics.coherence_score.DESC"]
+            experiment.experiment_id, order_by=["metrics.f1_score.DESC"]
         ).iloc[0]
         artifact_uri = run["artifact_uri"]
         mlflow.artifacts.download_artifacts(artifact_uri, dst_path=output)

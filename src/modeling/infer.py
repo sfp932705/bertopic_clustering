@@ -23,10 +23,13 @@ class Infer:
         return contents
 
     def save_visualizations(self, documents: list[str]):
-        fig = self.model.visualize_topics(
-            width=SETTINGS.figures.width, height=SETTINGS.figures.height
-        )
-        fig.write_html(self.output_path / "vis_topics.html")
+        try:
+            fig = self.model.visualize_topics(
+                width=SETTINGS.figures.width, height=SETTINGS.figures.height
+            )
+            fig.write_html(self.output_path / "vis_topics.html")
+        except (ValueError, TypeError):
+            pass
         fig = self.model.visualize_hierarchy(
             width=SETTINGS.figures.width, height=SETTINGS.figures.height
         )
