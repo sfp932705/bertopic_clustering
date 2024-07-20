@@ -12,7 +12,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 
 [tool.bumpversion]
-current_version = "0.0.2"
+current_version = "0.0.3"
 commit = false
 tag = false
 
@@ -23,7 +23,7 @@ check_untyped_defs = true
 exclude = '^data\/*'
 
 [[tool.mypy.overrides]]
-module = ["transformers", "mlflow", "bertopic", "gensim", "gensim.models.coherencemodel"]
+module = ["transformers", "mlflow", "bertopic", "gensim", "gensim.models.coherencemodel", "sklearn.metrics"]
 ignore_missing_imports = true
 
 [tool.ruff]

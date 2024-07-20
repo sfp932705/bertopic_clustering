@@ -8,15 +8,24 @@ from data_processing.preprocess_types import Processing
 ENV_FILE = Path(__file__).parents[1] / ".env"
 
 
+class LightGBMSettings(BaseSettings):
+    n_estimators: int = 150
+    num_leaves: int = 16
+    max_depth: int = 8
+    random_state: int = 42
+    class_weight: str = "balanced"
+    objective: str = "multiclass"
+
+
 class MlFlowSettings(BaseSettings):
     uri: str = "http://127.0.0.1:5000"
     best_model: str = "models"
 
 
 class BERTopicParamGrid(BaseSettings):
-    min_topic_size: list[int] = [5, 10, 20]
-    top_n_words: list[int] = [5, 10]
-    n_gram_range: list[tuple[int, int]] = [(1, 1), (1, 2), (1, 3)]
+    min_topic_size: list[int] = [5, 10, 20, 30, 50]
+    top_n_words: list[int] = [10, 15, 20]
+    n_gram_range: list[tuple[int, int]] = [(1, 1)]
 
 
 class FigSizes(BaseSettings):
@@ -31,6 +40,7 @@ class DatasetColumnNames(BaseSettings):
 
 class TrainingSettings(BaseSettings):
     mlflow: MlFlowSettings = Field(default_factory=MlFlowSettings)
+    lightgbm: LightGBMSettings = Field(default_factory=LightGBMSettings)
     figures: FigSizes = Field(default_factory=FigSizes)
     preprocessing: list[Processing] = Field(default=[Processing.RAW])
     columns: DatasetColumnNames = Field(default_factory=DatasetColumnNames)

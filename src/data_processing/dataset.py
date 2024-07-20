@@ -123,7 +123,7 @@ class TsvDataset:
     @check_loaded_data
     def remove_ats(self, column: str):
         self.data = self.data.with_columns(
-            pl.col(column).str.replace_all(r"@[\s@]+@", "")
+            pl.col(column).str.replace_all(r"@[\s@]+@", "").str.replace_all("  ", " ")
         )
 
     @check_loaded_data
