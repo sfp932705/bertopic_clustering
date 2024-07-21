@@ -41,6 +41,10 @@ class Infer:
         )
         fig.write_html(self.output_path / "vis_documents.html")
 
+    def log_preds(self, topics: list[int]):
+        with (self.output_path / "preds.txt").open("w") as f:
+            f.write("\n".join(str(x) for x in topics))
+
     def log_info(self, documents: list[str]):
         with (self.output_path / "topic_info.csv").open("w") as f:
             f.write(self.model.get_topic_info().to_csv())
@@ -49,7 +53,8 @@ class Infer:
 
     def infer(self):
         documents = self.get_dataset(self.processing).tolist()
-        self.model.transform(documents)
+        topics, probs = self.model.transform(documents)
         self.output_path.mkdir(exist_ok=True, parents=True)
+        self.log_preds(topics.tolist())
         self.log_info(documents)
         self.save_visualizations(documents)
